@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b2239">
+  <title>SRC Funktext Trainer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --mayday: #ef4444;
+      --pan: #f59e0b;
+      --sec: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
+
+    header {
+      background: #0b1329;
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.15rem; color: var(--accent); }
+
+    .nav-tabs {
+      display: flex;
+      background: #131d35;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 6px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .container { padding: 14px; max-width: 600px; margin: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .badge-mayday { background: var(--mayday); color: #fff; }
+    .badge-panpan { background: var(--pan); color: #000; }
+    .badge-securite { background: var(--sec); color: #000; }
+    .badge-routine { background: var(--accent); color: #000; }
+
+    .radio-box {
+      background: #080d1a;
+      border-left: 3px solid var(--accent);
+      padding: 10px;
+      border-radius: 4px;
+      margin: 8px 0;
+      font-family: monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 6px;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-secondary { background: #334155; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* NATO Speller */
+    .speller-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #080d1a;
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .speller-output {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: var(--accent);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SRC Funkverkehr-Trainer</h1>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('texts')">Texte</button>
+    <button class="tab-btn" onclick="showTab('quiz')">Trainer</button>
+    <button class="tab-btn" onclick="showTab('speller')">NATO Alphabet</button>
+  </nav>
+
+  <div class="container">
+    <!-- TAB 1: FUNKTEXTE -->
+    <div id="tab-texts" class="page active">
+      <div id="textList"></div>
+    </div>
+
+    <!-- TAB 2: INTERAKTIVER TRAINER -->
+    <div id="tab-quiz" class="page">
+      <div class="card">
+        <div id="quizBadge" class="badge">Lernmodus</div>
+        <h3 id="quizTitle" style="margin-bottom: 8px;">Klicke auf Weiter</h3>
+        <p id="quizScenario" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;"></p>
+        
+        <div id="quizSolution" class="radio-box" style="display: none;"></div>
+
+        <div class="grid-2">
+          <button class="btn btn-secondary" onclick="toggleQuizAnswer()">Lösung zeigen</button>
+          <button class="btn" onclick="speakText(currentQuizText)">Vorlesen</button>
+        </div>
+        <button class="btn btn-secondary" style="margin-top: 8px;" onclick="nextQuiz()">Nächster Text</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: NATO ALPHABET -->
+    <div id="tab-speller" class="page">
+      <div class="card">
+        <h3>Callsign / Text Buchstabierer</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+          Tippe Rufzeichen oder Schiffsnamen ein:
+        </p>
+        <input type="text" id="spellerInput" class="speller-input" placeholder="Z. B. DE6482 oder ODIN" oninput="translateToNato()">
+        <div id="spellerOutput" class="speller-output"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const funkdaten = [
+      {
+        id: 1,
+        type: "MAYDAY",
+        badge: "badge-mayday",
+        title: "Notmeldung (Sinken nach Kollision)",
+        german: "Mayday (3x). Hier ist Segelyacht ALBATROS (3x), Rufzeichen DELTA ALFA 1234, MMSI 211234567.\nNotposition: 54 Grad 12 Minuten Nord, 011 Grad 08 Minuten Ost.\nWasser-Einbruch nach Kollision, sinken, 4 Personen an Bord, benötigen sofortige Hilfe. Bitte kommen.",
+        english: "MAYDAY MAYDAY MAYDAY\nTHIS IS\nSAILING YACHT ALBATROS SAILING YACHT ALBATROS SAILING YACHT ALBATROS\nDELTA ALFA ONE TWO THREE FOUR - MMSI TWO ONE ONE TWO THREE FOUR FIVE SIX SEVEN\n\nMAYDAY ALBATROS\nIN POSITION FIVE FOUR DEGREES ONE TWO MINUTES NORTH - ZERO ONE ONE DEGREES ZERO EIGHT MINUTES EAST\nSINKING AFTER COLLISION\nREQUIRE IMMEDIATE ASSISTANCE\nFOUR PERSONS ON BOARD - LIFE RAFT DEPLOYED\nOVER"
+      },
+      {
+        id: 2,
+        type: "PAN PAN",
+        badge: "badge-panpan",
+        title: "Dringlichkeit (Maschinenausfall vor Legerwall)",
+        german: "Pan Pan (3x). An alle Funkstellen (3x). Hier ist Motoryacht ODIN (3x), Rufzeichen DH4422, MMSI 211987654.\nPosition: 54 Grad 25 Minuten Nord, 010 Grad 15 Minuten Ost.\nMaschinenschaden, treiben auf Untiefe zu, 2 Personen an Bord, erbitten Schlepphilfe. Bitte kommen.",
+        english: "PAN PAN PAN PAN PAN PAN\nALL STATIONS ALL STATIONS ALL STATIONS\nTHIS IS\nMOTOR YACHT ODIN MOTOR YACHT ODIN MOTOR YACHT ODIN\nDELTA HOTEL FOUR FOUR TWO TWO - MMSI TWO ONE ONE NINE EIGHT SEVEN SIX FIVE FOUR\n\nIN POSITION FIVE FOUR DEGREES TWO FIVE MINUTES NORTH - ZERO ONE ZERO DEGREES ONE FIVE MINUTES EAST\nENGINE BREAKDOWN - DRIFTING TOWARDS SHALLOW WATER\nREQUIRE TOWING ASSISTANCE\nTWO PERSONS ON BOARD\nOVER"
+      },
+      {
+        id: 3,
+        type: "SECURITE",
+        badge: "badge-securite",
+        title: "Sicherheitsmeldung (Treibender Container)",
+        german: "Sécurité (3x). An alle Funkstellen (3x). Hier ist Segelyacht NORDLYS, Rufzeichen DB8811.\nPosition: 54 Grad 30 Minuten Nord, 011 Grad 00 Minuten Ost.\nHalb unter Wasser treibender 40-Fuß-Container gesichtet. Gefahr für die Schifffahrt. Ende.",
+        english: "SECURITE SECURITE SECURITE\nALL STATIONS ALL STATIONS ALL STATIONS\nTHIS IS\nSAILING YACHT NORDLYS SAILING YACHT NORDLYS SAILING YACHT NORDLYS\nDELTA BRAVO EIGHT EIGHT ONE ONE\n\nIN POSITION FIVE FOUR DEGREES THREE ZERO MINUTES NORTH - ZERO ONE ONE DEGREES ZERO ZERO MINUTES EAST\nSEMI-SUBMERGED FORTY FEET CONTAINER SIGHTED\nDANGER TO NAVIGATION\nOUT"
+      },
+      {
+        id: 4,
+        type: "ROUTINE",
+        badge: "badge-routine",
+        title: "Routine-Anruf (Marina anfunken)",
+        german: "Kiel Marina (3x). Hier ist Yacht ALBATROS (3x), Rufzeichen DA1234. Auf Kanal 72. Bitte kommen.",
+        english: "KIEL MARINA KIEL MARINA KIEL MARINA\nTHIS IS\nALBATROS ALBATROS ALBATROS\nDELTA ALFA ONE TWO THREE FOUR\nON CHANNEL SEVEN TWO\nOVER"
+      }
+    ];
+
+    const natoAlphabet = {
+      'A': 'Alfa', 'B': 'Bravo', 'C': 'Charlie', 'D': 'Delta', 'E': 'Echo',
+      'F': 'Foxtrot', 'G': 'Golf', 'H': 'Hotel', 'I': 'India', 'J': 'Juliett',
+      'K': 'Kilo', 'L': 'Lima', 'M': 'Mike', 'N': 'November', 'O': 'Oscar',
+      'P': 'Papa', 'Q': 'Quebec', 'R': 'Romeo', 'S': 'Sierra', 'T': 'Tango',
+      'U': 'Uniform', 'V': 'Victor', 'W': 'Whiskey', 'X': 'X-ray', 'Y': 'Yankee',
+      'Z': 'Zulu', '0': 'Zero', '1': 'One', '2': 'Two', '3': 'Three',
+      '4': 'Four', '5': 'Five', '6': 'Six', '7': 'Seven', '8': 'Eight', '9': 'Nine'
+    };
+
+    function renderTexts() {
+      const list = document.getElementById('textList');
+      list.innerHTML = funkdaten.map(item => `
+        <div class="card">
+          <span class="badge ${item.badge}">${item.type}</span>
+          <h3 style="margin-bottom: 4px;">${item.title}</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">${item.german}</p>
+          <div class="radio-box">${item.english}</div>
+          <button class="btn" onclick="speakText(\`${item.english.replace(/[\n\r]+/g, ' ')}\`)">Aussprache anhören</button>
+        </div>
+      `).join('');
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.target.classList.add('active');
+      if (tabId === 'quiz' && !currentQuiz) nextQuiz();
+    }
+
+    let currentQuiz = null;
+    let currentQuizText = "";
+
+    function nextQuiz() {
+      currentQuiz = funkdaten[Math.floor(Math.random() * funkdaten.length)];
+      currentQuizText = currentQuiz.english.replace(/[\n\r]+/g, ' ');
+      document.getElementById('quizBadge').className = `badge ${currentQuiz.badge}`;
+      document.getElementById('quizBadge').innerText = currentQuiz.type;
+      document.getElementById('quizTitle').innerText = currentQuiz.title;
+      document.getElementById('quizScenario').innerText = "Aufgabe: Formuliere den englischen Spruch für folgenden Sachverhalt:\n\n" + currentQuiz.german;
+      
+      const sol = document.getElementById('quizSolution');
+      sol.innerText = currentQuiz.english;
+      sol.style.display = 'none';
+    }
+
+    function toggleQuizAnswer() {
+      const sol = document.getElementById('quizSolution');
+      sol.style.display = sol.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-GB';
+        utterance.rate = 0.85; // Langsam und verständlich sprechen
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert("Text-to-Speech wird auf diesem Browser nicht unterstützt.");
+      }
+    }
+
+    function translateToNato() {
+      const input = document.getElementById('spellerInput').value.toUpperCase();
+      const output = document.getElementById('spellerOutput');
+      const letters = input.split('');
+      const translated = letters.map(char => natoAlphabet[char] || char).join(' - ');
+      output.innerText = translated;
+    }
+
+    renderTexts();
+  </script>
+</body>
+</html>
